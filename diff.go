@@ -80,6 +80,7 @@ func JSON(a, b []byte) (map[string]DiffType, error) {
 		return nil, err
 	}
 
+	// Compute a - b and a ∩ b
 	rv := map[string]DiffType{}
 	var common lengthSorting
 	for v := range amap {
@@ -90,12 +91,16 @@ func JSON(a, b []byte) (map[string]DiffType, error) {
 		}
 	}
 
+	// Compute b - a
 	for v := range bmap {
 		if !amap[v] {
 			rv[v] = MissingA
 		}
 	}
 
+	// Find only the longest paths of a ∩ b and verify they are
+	// the same.  e.g. if /x/y/z is different between a and b,
+	// then only consider /x/y/z, not /x/y or /x or / or ""
 	upstream := map[string]bool{}
 	sort.Sort(common)
 	for _, v := range common {
