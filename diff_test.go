@@ -7,7 +7,7 @@ import (
 )
 
 func TestDiffNil(t *testing.T) {
-	diffs, err := Diff(nil, nil)
+	diffs, err := JSON(nil, nil)
 	if err != nil {
 		t.Fatalf("Expected no error on nil diff, got %v", err)
 	}
@@ -79,7 +79,7 @@ func TestDiff(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		diffs, err := Diff([]byte(test.a), []byte(test.b))
+		diffs, err := JSON([]byte(test.a), []byte(test.b))
 		if (err != nil) != test.errored {
 			t.Errorf("Expected error=%v on %q:  %v", test.errored, test.name, err)
 		}

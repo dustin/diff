@@ -47,8 +47,8 @@ func pointerSet(j []byte) (map[string]bool, error) {
 	return rv, nil
 }
 
-// Diff returns the differences between two json blobs.
-func Diff(a, b []byte) (map[string]DiffType, error) {
+// JSON returns the differences between two json blobs.
+func JSON(a, b []byte) (map[string]DiffType, error) {
 	amap, err := pointerSet(a)
 	if err != nil {
 		return nil, err
