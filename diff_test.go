@@ -6,13 +6,28 @@ import (
 	"testing"
 )
 
+func TestUpstreamPathing(t *testing.T) {
+	if len(upstreamPaths("")) != 2 {
+		t.Errorf(`Expected two things from "", got %#v`, upstreamPaths(""))
+	}
+	m := map[string]bool{}
+	for _, p := range upstreamPaths("/a/b/c/d/e/f") {
+		m[p] = true
+	}
+	if len(m) != 7 {
+		t.Errorf("Expected 7 elements, got %v", m)
+	}
+	for _, e := range []string{"", "/a", "/a/b", "/a/b/c", "/a/b/c/d", "/a/b/c/d/e"} {
+		if !m[e] {
+			t.Errorf("Expected %q, but didn't find it", e)
+		}
+	}
+}
+
 func TestDiffNil(t *testing.T) {
 	diffs, err := JSON(nil, nil)
-	if err != nil {
-		t.Fatalf("Expected no error on nil diff, got %v", err)
-	}
-	if len(diffs) != 0 {
-		t.Errorf("Expected no diffs, got %v", diffs)
+	if err == nil {
+		t.Fatalf("Expected error on nil diff, got %v", diffs)
 	}
 }
 
@@ -50,7 +65,13 @@ func TestDiff(t *testing.T) {
 		aOnly1 = `{"a": 1}`
 		aOnly3 = `{"a": 3}`
 		broken = `{x}`
+		ax1    = `{"a": {"x": 1}}`
+		ax2    = `{"a": {"x": 2}}`
+		esc1   = `{"a": {"/": 1}}`
+		esc2   = `{"a": {"/": 2}}`
 	)
+
+	empty := map[string]DiffType{}
 
 	tests := []struct {
 		name    string
@@ -58,10 +79,10 @@ func TestDiff(t *testing.T) {
 		exp     map[string]DiffType
 		errored bool
 	}{
-		{"Empty", "", "", map[string]DiffType{}, false},
-		{"Identity", aFirst, aFirst, map[string]DiffType{}, false},
-		{"Same", aFirst, bFirst, map[string]DiffType{}, false},
-		{"Other order", aFirst, bFirst, map[string]DiffType{}, false},
+		{"Empty", "", "", empty, true},
+		{"Identity", aFirst, aFirst, empty, false},
+		{"Same", aFirst, bFirst, empty, false},
+		{"Other order", aFirst, bFirst, empty, false},
 		{"A diff", aFirst, aTwo, map[string]DiffType{"/a": Different}, false},
 		{"A diff rev", aTwo, aFirst, map[string]DiffType{"/a": Different}, false},
 		{"Missing b <- 1", aFirst, aOnly1, map[string]DiffType{"/b": MissingB}, false},
@@ -76,6 +97,13 @@ func TestDiff(t *testing.T) {
 		}, false},
 		{"Broken A", broken, aFirst, nil, true},
 		{"Broken B", aFirst, broken, nil, true},
+		{"/a/x same", ax1, ax1, empty, false},
+		{"/a/x different", ax1, ax2, map[string]DiffType{
+			"/a/x": Different,
+		}, false},
+		{"/a/~1 different", esc1, esc2, map[string]DiffType{
+			"/a/~1": Different,
+		}, false},
 	}
 
 	for _, test := range tests {

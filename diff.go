@@ -2,7 +2,10 @@ package diff
 
 import (
 	"log"
+	"path/filepath"
 	"reflect"
+	"sort"
+	"strings"
 
 	"github.com/dustin/go-jsonpointer"
 )
@@ -47,6 +50,25 @@ func pointerSet(j []byte) (map[string]bool, error) {
 	return rv, nil
 }
 
+// lengthSorting is a string slice sort.Interface that sorts longer
+// strings first.
+type lengthSorting []string
+
+func (l lengthSorting) Len() int           { return len(l) }
+func (l lengthSorting) Less(i, j int) bool { return len(l[j]) < len(l[i]) }
+func (l lengthSorting) Swap(i, j int)      { l[i], l[j] = l[j], l[i] }
+
+func upstreamPaths(u string) []string {
+	rv := []string{""}
+	prev := "/"
+	for _, p := range strings.Split(u, "/") {
+		rv = append(rv, prev)
+		prev = filepath.Join(prev, p)
+	}
+
+	return rv
+}
+
 // JSON returns the differences between two json blobs.
 func JSON(a, b []byte) (map[string]DiffType, error) {
 	amap, err := pointerSet(a)
@@ -59,18 +81,10 @@ func JSON(a, b []byte) (map[string]DiffType, error) {
 	}
 
 	rv := map[string]DiffType{}
-
+	var common lengthSorting
 	for v := range amap {
-		if v == "" {
-			continue
-		}
 		if bmap[v] {
-			var aval, bval interface{}
-			must(jsonpointer.FindDecode(a, v, &aval))
-			must(jsonpointer.FindDecode(b, v, &bval))
-			if !reflect.DeepEqual(aval, bval) {
-				rv[v] = Different
-			}
+			common = append(common, v)
 		} else {
 			rv[v] = MissingB
 		}
@@ -79,6 +93,24 @@ func JSON(a, b []byte) (map[string]DiffType, error) {
 	for v := range bmap {
 		if !amap[v] {
 			rv[v] = MissingA
+		}
+	}
+
+	upstream := map[string]bool{}
+	sort.Sort(common)
+	for _, v := range common {
+		if upstream[v] {
+			continue
+		}
+		for _, u := range upstreamPaths(v) {
+			upstream[u] = true
+		}
+
+		var aval, bval interface{}
+		must(jsonpointer.FindDecode(a, v, &aval))
+		must(jsonpointer.FindDecode(b, v, &bval))
+		if !reflect.DeepEqual(aval, bval) {
+			rv[v] = Different
 		}
 	}
 
