@@ -10,13 +10,12 @@ import (
 	"github.com/dustin/go-jsonpointer"
 )
 
-// DiffType represents the type of difference between two JSON
-// structures.
-type DiffType int
+// Type represents the type of difference between two JSON structures.
+type Type int
 
 const (
 	// Same designates a path yields the same results in two objects.
-	Same = DiffType(iota)
+	Same = Type(iota)
 	// MissingA designates a path that was missing from the first
 	// argument of the diff.
 	MissingA
@@ -30,7 +29,7 @@ const (
 
 var diffNames = []string{"same", "missing a", "missing b", "different"}
 
-func (d DiffType) String() string {
+func (d Type) String() string {
 	return diffNames[d]
 }
 
@@ -72,7 +71,7 @@ func upstreamPaths(u string) []string {
 }
 
 // JSON returns the differences between two json blobs.
-func JSON(a, b []byte) (map[string]DiffType, error) {
+func JSON(a, b []byte) (map[string]Type, error) {
 	amap, err := pointerSet(a)
 	if err != nil {
 		return nil, err
@@ -83,7 +82,7 @@ func JSON(a, b []byte) (map[string]DiffType, error) {
 	}
 
 	// Compute a - b and a ∩ b
-	rv := map[string]DiffType{}
+	rv := map[string]Type{}
 	var common lengthSorting
 	for v := range amap {
 		if bmap[v] {

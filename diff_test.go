@@ -32,7 +32,7 @@ func TestDiffNil(t *testing.T) {
 }
 
 func TestDiffNames(t *testing.T) {
-	tests := map[DiffType]string{
+	tests := map[Type]string{
 		Same:      "same",
 		MissingA:  "missing a",
 		MissingB:  "missing b",
@@ -72,7 +72,7 @@ func TestDiff(t *testing.T) {
 		esc2   = `{"a": {"/": 2}}`
 	)
 
-	empty := map[string]DiffType{}
+	empty := map[string]Type{}
 	// Interesting side-effect, in an empty map, all look same
 	if empty["/a/b/c"] != Same {
 		t.Errorf("Expected same in empty map lookup, got %v", empty["/a/b/c"])
@@ -81,32 +81,32 @@ func TestDiff(t *testing.T) {
 	tests := []struct {
 		name    string
 		a, b    string
-		exp     map[string]DiffType
+		exp     map[string]Type
 		errored bool
 	}{
 		{"Empty", "", "", empty, true},
 		{"Identity", aFirst, aFirst, empty, false},
 		{"Same", aFirst, bFirst, empty, false},
 		{"Other order", aFirst, bFirst, empty, false},
-		{"A diff", aFirst, aTwo, map[string]DiffType{"/a": Different}, false},
-		{"A diff rev", aTwo, aFirst, map[string]DiffType{"/a": Different}, false},
-		{"Missing b <- 1", aFirst, aOnly1, map[string]DiffType{"/b": MissingB}, false},
-		{"Missing b -> 1", aOnly1, aFirst, map[string]DiffType{"/b": MissingA}, false},
-		{"Missing b <- 3", aTwo, aOnly3, map[string]DiffType{
+		{"A diff", aFirst, aTwo, map[string]Type{"/a": Different}, false},
+		{"A diff rev", aTwo, aFirst, map[string]Type{"/a": Different}, false},
+		{"Missing b <- 1", aFirst, aOnly1, map[string]Type{"/b": MissingB}, false},
+		{"Missing b -> 1", aOnly1, aFirst, map[string]Type{"/b": MissingA}, false},
+		{"Missing b <- 3", aTwo, aOnly3, map[string]Type{
 			"/a": Different,
 			"/b": MissingB,
 		}, false},
-		{"Missing b -> 3", aOnly3, aTwo, map[string]DiffType{
+		{"Missing b -> 3", aOnly3, aTwo, map[string]Type{
 			"/a": Different,
 			"/b": MissingA,
 		}, false},
 		{"Broken A", broken, aFirst, nil, true},
 		{"Broken B", aFirst, broken, nil, true},
 		{"/a/x same", ax1, ax1, empty, false},
-		{"/a/x different", ax1, ax2, map[string]DiffType{
+		{"/a/x different", ax1, ax2, map[string]Type{
 			"/a/x": Different,
 		}, false},
-		{"/a/~1 different", esc1, esc2, map[string]DiffType{
+		{"/a/~1 different", esc1, esc2, map[string]Type{
 			"/a/~1": Different,
 		}, false},
 	}
