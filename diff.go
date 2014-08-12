@@ -15,9 +15,11 @@ import (
 type DiffType int
 
 const (
+	// Same designates a path yields the same results in two objects.
+	Same = DiffType(iota)
 	// MissingA designates a path that was missing from the first
 	// argument of the diff.
-	MissingA = DiffType(iota)
+	MissingA
 	// MissingB designates a path taht was missing from the second
 	// argument of the diff.
 	MissingB
@@ -26,7 +28,7 @@ const (
 	Different
 )
 
-var diffNames = []string{"missing a", "missing b", "different"}
+var diffNames = []string{"same", "missing a", "missing b", "different"}
 
 func (d DiffType) String() string {
 	return diffNames[d]

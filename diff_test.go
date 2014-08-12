@@ -33,6 +33,7 @@ func TestDiffNil(t *testing.T) {
 
 func TestDiffNames(t *testing.T) {
 	tests := map[DiffType]string{
+		Same:      "same",
 		MissingA:  "missing a",
 		MissingB:  "missing b",
 		Different: "different",
@@ -72,6 +73,10 @@ func TestDiff(t *testing.T) {
 	)
 
 	empty := map[string]DiffType{}
+	// Interesting side-effect, in an empty map, all look same
+	if empty["/a/b/c"] != Same {
+		t.Errorf("Expected same in empty map lookup, got %v", empty["/a/b/c"])
+	}
 
 	tests := []struct {
 		name    string
