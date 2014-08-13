@@ -31,12 +31,27 @@ func TestDiffNil(t *testing.T) {
 	}
 }
 
-func TestDiffNames(t *testing.T) {
+func TestTypeMissing(t *testing.T) {
+	tests := map[Type]bool{
+		Same:           false,
+		MissingA:       true,
+		MissingB:       true,
+		DifferentValue: false,
+	}
+
+	for k, v := range tests {
+		if k.Missing() != v {
+			t.Errorf("Expected %v for %v, got %v", v, k, k.Missing())
+		}
+	}
+}
+
+func TestTypeNames(t *testing.T) {
 	tests := map[Type]string{
-		Same:      "same",
-		MissingA:  "missing a",
-		MissingB:  "missing b",
-		Different: "different",
+		Same:           "same",
+		MissingA:       "missing a",
+		MissingB:       "missing b",
+		DifferentValue: "different value",
 	}
 
 	for k, v := range tests {
@@ -88,26 +103,26 @@ func TestDiff(t *testing.T) {
 		{"Identity", aFirst, aFirst, empty, false},
 		{"Same", aFirst, bFirst, empty, false},
 		{"Other order", aFirst, bFirst, empty, false},
-		{"A diff", aFirst, aTwo, map[string]Type{"/a": Different}, false},
-		{"A diff rev", aTwo, aFirst, map[string]Type{"/a": Different}, false},
+		{"A diff", aFirst, aTwo, map[string]Type{"/a": DifferentValue}, false},
+		{"A diff rev", aTwo, aFirst, map[string]Type{"/a": DifferentValue}, false},
 		{"Missing b <- 1", aFirst, aOnly1, map[string]Type{"/b": MissingB}, false},
 		{"Missing b -> 1", aOnly1, aFirst, map[string]Type{"/b": MissingA}, false},
 		{"Missing b <- 3", aTwo, aOnly3, map[string]Type{
-			"/a": Different,
+			"/a": DifferentValue,
 			"/b": MissingB,
 		}, false},
 		{"Missing b -> 3", aOnly3, aTwo, map[string]Type{
-			"/a": Different,
+			"/a": DifferentValue,
 			"/b": MissingA,
 		}, false},
 		{"Broken A", broken, aFirst, nil, true},
 		{"Broken B", aFirst, broken, nil, true},
 		{"/a/x same", ax1, ax1, empty, false},
 		{"/a/x different", ax1, ax2, map[string]Type{
-			"/a/x": Different,
+			"/a/x": DifferentValue,
 		}, false},
 		{"/a/~1 different", esc1, esc2, map[string]Type{
-			"/a/~1": Different,
+			"/a/~1": DifferentValue,
 		}, false},
 	}
 

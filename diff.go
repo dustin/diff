@@ -24,13 +24,18 @@ const (
 	MissingB
 	// Different designates a path that is found in both
 	// arguments, but with different values.
-	Different
+	DifferentValue
 )
 
-var diffNames = []string{"same", "missing a", "missing b", "different"}
+var diffNames = []string{"same", "missing a", "missing b", "different value"}
 
 func (d Type) String() string {
 	return diffNames[d]
+}
+
+// Missing is true if the Type represents a value missing in either set.
+func (d Type) Missing() bool {
+	return d == MissingA || d == MissingB
 }
 
 func must(err error) {
@@ -116,7 +121,7 @@ func JSON(a, b []byte) (map[string]Type, error) {
 		must(jsonpointer.FindDecode(a, v, &aval))
 		must(jsonpointer.FindDecode(b, v, &bval))
 		if !reflect.DeepEqual(aval, bval) {
-			rv[v] = Different
+			rv[v] = DifferentValue
 		}
 	}
 
