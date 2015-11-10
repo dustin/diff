@@ -22,7 +22,7 @@ const (
 	// MissingB designates a path taht was missing from the second
 	// argument of the diff.
 	MissingB
-	// Different designates a path that is found in both
+	// DifferentValue designates a path that is found in both
 	// arguments, but with different values.
 	DifferentValue
 )
