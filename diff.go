@@ -56,14 +56,6 @@ func pointerSet(j []byte) (map[string]bool, error) {
 	return rv, nil
 }
 
-// lengthSorting is a string slice sort.Interface that sorts longer
-// strings first.
-type lengthSorting []string
-
-func (l lengthSorting) Len() int           { return len(l) }
-func (l lengthSorting) Less(i, j int) bool { return len(l[j]) < len(l[i]) }
-func (l lengthSorting) Swap(i, j int)      { l[i], l[j] = l[j], l[i] }
-
 func upstreamPaths(u string) []string {
 	rv := []string{""}
 	prev := "/"
@@ -88,7 +80,7 @@ func JSON(a, b []byte) (map[string]Type, error) {
 
 	// Compute a - b and a ∩ b
 	rv := map[string]Type{}
-	var common lengthSorting
+	var common []string
 	for v := range amap {
 		if bmap[v] {
 			common = append(common, v)
@@ -108,7 +100,7 @@ func JSON(a, b []byte) (map[string]Type, error) {
 	// the same.  e.g. if /x/y/z is different between a and b,
 	// then only consider /x/y/z, not /x/y or /x or / or ""
 	upstream := map[string]bool{}
-	sort.Sort(common)
+	sort.Slice(common, func(i, j int) bool { return len(common[j]) < len(common[i]) })
 	for _, v := range common {
 		if upstream[v] {
 			continue
